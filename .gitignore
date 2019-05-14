@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+cifar-10-batches-py/
 
 # C extensions
 *.so
