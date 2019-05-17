@@ -1,3 +1,4 @@
+"""Same as notebook"""
 import unittest
 import numpy as np
 
@@ -21,14 +22,22 @@ def pickle_load(path):
     with open(path, 'rb') as f:
         return pickle.load(f, encoding='latin1')
 
+
+def cross_ent_continuous(logits, labels):
+    # TODO(SS): Call softmax within
+    y_cross = labels * logits.log()
+    loss = y_cross.sum(dim=1).mean()
+    return loss
+
+
 class MixMatchLoss(torch.nn.Module):
     def __init__(self, lambda_u=100):
         super().__init__()
         self.lambda_u = lambda_u
     def forward(self, preds, y, n_labeled):
         # This line fails cause y continuous
-        labeled_loss = F.cross_entropy(preds[:n_labeled], y[:n_labeled])
-        unlabeled_loss = F.mse(preds[n_labeled:], y[n_labeled:])
+        labeled_loss = cross_ent_continuous(preds[:n_labeled], y[:n_labeled])
+        unlabeled_loss = nn.MSELoss()(preds[n_labeled:], y[n_labeled:])
         return labeled_loss + (self.lambda_u * unlabeled_loss)
 
 
