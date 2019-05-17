@@ -2,22 +2,19 @@
 import unittest
 import numpy as np
 from .model import get_small_model
-from .mixmatch import MixMatchLoss
+from .mixmatch import ArrayDataset, MixupLoader, MixMatchLoss
 import torch.nn.functional as F
 from torch import nn
 import pickle
-from .mixmatch import ArrayDataset, MixupLoader
+
 
 def pickle_load(path):
     with open(path, 'rb') as f:
         return pickle.load(f, encoding='latin1')
 
 
-to_arr = lambda x: x.detach().numpy()
 class TestMismatch(unittest.TestCase):
-
-
-    def test_mixup_torch(self):
+    def test_loader(self):
         (X_labeled, y_labeled, X_unlabeled) = pickle_load('cifar_subset.pkl')
         ds = ArrayDataset(X_labeled[:12], y_labeled[:12], X_unlabeled[:12])
         BS = 4
