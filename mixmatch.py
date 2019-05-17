@@ -46,7 +46,6 @@ def sharpen(x, T):
 def mixup_torch(x1, x2, y1, y2, alpha):
     beta = torch.Tensor(np.random.beta(alpha, alpha, x1.shape[0]))
     beta = torch.max(beta, 1-beta)
-    print(f'beta: {beta.shape}, x1: {x1.shape}, x2: {x2.shape}')
     return lc2(x1, x2, beta), lc2(y1, y2, beta)
 
 def lc2(x1, x2, l):
@@ -113,4 +112,18 @@ class MixupLoader(DataLoader):
             print(f' p: {to_arr(p)}')
             print(f'Returing: x final: {X.shape}, Y_final: {np.round(to_arr(Y), 3)}')
         return X, Y
-        #n_labeled
+
+def cross_ent_continuous(logits, labels):
+    # TODO(SS): Call softmax within
+    y_cross = labels * logits.log()
+    loss = -y_cross.sum(dim=1).mean()
+    return loss
+
+class MixMatchLoss(torch.nn.Module):
+    def __init__(self, lambda_u=100):
+        super().__init__()
+        self.lambda_u = lambda_u
+    def forward(self, preds, y, n_labeled):
+        labeled_loss = cross_ent_continuous(preds[:n_labeled], y[:n_labeled])
+        unlabeled_loss = nn.MSELoss()(preds[n_labeled:], y[n_labeled:])
+        return labeled_loss + (self.lambda_u * unlabeled_loss)

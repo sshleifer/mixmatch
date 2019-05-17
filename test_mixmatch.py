@@ -2,43 +2,21 @@
 import unittest
 import numpy as np
 
+from mixmatch import MixMatchLoss
+
 arr = [1,2,3,4]
 img = np.array(arr *4).reshape(4,4)
-from torch.utils.data.sampler import Sampler
-from torch.utils.data.sampler import RandomSampler
-from torch.utils.data import Dataset
-import numpy as np
-import torch
-from torch import nn
 import torch.nn.functional as F
-import pandas as pd
+
 to_arr = lambda x: x.detach().numpy()
 import pickle
-from .dataset import ArrayDataset, MixupLoader
+from .mixmatch import ArrayDataset, MixupLoader
 def pickle_save(obj, path):
     with open(path, 'wb') as f:
         pickle.dump(obj, f)
 def pickle_load(path):
     with open(path, 'rb') as f:
         return pickle.load(f, encoding='latin1')
-
-
-def cross_ent_continuous(logits, labels):
-    # TODO(SS): Call softmax within
-    y_cross = labels * logits.log()
-    loss = y_cross.sum(dim=1).mean()
-    return loss
-
-
-class MixMatchLoss(torch.nn.Module):
-    def __init__(self, lambda_u=100):
-        super().__init__()
-        self.lambda_u = lambda_u
-    def forward(self, preds, y, n_labeled):
-        # This line fails cause y continuous
-        labeled_loss = cross_ent_continuous(preds[:n_labeled], y[:n_labeled])
-        unlabeled_loss = nn.MSELoss()(preds[n_labeled:], y[n_labeled:])
-        return labeled_loss + (self.lambda_u * unlabeled_loss)
 
 
 from torch import nn
